@@ -1,12 +1,13 @@
 // 思い出しカード — service worker
 // キャッシュ名を変えると古いキャッシュが破棄され、更新が反映されます。
-const CACHE = "omoidashi-v1";
+const CACHE = "omoidashi-v2";
 
 // オフラインで開くために最低限キャッシュするファイル
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./bg.jpg",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png"
