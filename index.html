@@ -440,7 +440,7 @@
 
     <div class="field">
       <label>表（問題）</label>
-      <textarea id="f-q" placeholder="例：今日やらないことは？" autofocus enterkeyhint="next"></textarea>
+      <textarea id="f-q" placeholder="例：日本でいちばん高い山は？" autofocus enterkeyhint="next"></textarea>
       <button class="imgbtn" id="qImgBtn">＋ 写真</button>
       <input type="file" id="qImgInput" accept="image/*" multiple hidden>
       <div class="thumbs" id="qThumbs"></div>
@@ -451,7 +451,7 @@
         <label style="margin:0">裏（答え）</label>
         <button class="imgbtn" id="faSearchBtn" style="margin:0;padding:5px 13px">検索</button>
       </div>
-      <textarea id="f-a" placeholder="例：夜ふかし。スマホは22時で箱へ" enterkeyhint="done"></textarea>
+      <textarea id="f-a" placeholder="例：富士山（空白のままでもOK）" enterkeyhint="done"></textarea>
       <button class="imgbtn" id="aImgBtn">＋ 写真</button>
       <input type="file" id="aImgInput" accept="image/*" multiple hidden>
       <div class="thumbs" id="aThumbs"></div>
@@ -580,7 +580,7 @@
   </div>
   <div style="flex:1;padding:6px 16px 26px;display:flex;flex-direction:column">
     <p class="set-note" style="margin:0 0 8px">なんでも置いとく場所。あとで問題にしたいことも、気づいたことも。勝手に保存される。</p>
-    <textarea id="memoText" style="flex:1;min-height:50vh;resize:none" placeholder="例：REBOOTの戸田恵梨香の役名、こうごういちかの漢字…"></textarea>
+    <textarea id="memoText" style="flex:1;min-height:50vh;resize:none" placeholder="例：あとで問題にしたいこと、気づいたこと…"></textarea>
   </div>
 </div>
 
@@ -824,10 +824,6 @@ fq.addEventListener("keydown",(e)=>{
 fa.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){
     e.preventDefault();
-    if(!fa.value.trim() && formAImgs.length===0){   // 文字も写真も無い → 進ませない
-      toast("裏（答え）になにか書いてな");
-      return;
-    }
     fa.blur();                        // ② キーボードを下げる → 保存ボタンが見える
     setStage(3, "緑の「保存」を押してな", "ask");
   }
@@ -841,9 +837,6 @@ async function saveNewCard(){
   const a = fa.value.trim();
   if(!q && formQImgs.length===0){
     toast("表（問題）になにか書いてな"); resetHint(); fq.focus(); return;
-  }
-  if(!a && formAImgs.length===0){
-    toast("裏（答え）になにか書いてな"); resetHint(); fa.focus(); return;
   }
   cards.unshift(mkCard(q, a, formQImgs.slice(), formAImgs.slice(), false));
   await save();
@@ -1338,10 +1331,9 @@ function shuffle(arr){
   return a;
 }
 function startStudy(n){
-  if(cards.length===0){ toast("まずはカードを作ってな"); return; }
-  const todos = shuffle(cards.filter(c=>c.todo));
-  const rest  = shuffle(cards.filter(c=>!c.todo));
-  queue = todos.concat(rest).slice(0, n);   // やること優先で最大n問
+  const pool = cards.filter(c=>!c.todo);    // やることは混ぜない（やることボタン専用）
+  if(pool.length===0){ toast("まずは問題を作ってな"); return; }
+  queue = shuffle(pool).slice(0, n);
   qi = 0; showingBack = false; finished = false;
   document.getElementById("study").classList.add("show");
   renderStudy();
@@ -1481,9 +1473,9 @@ function renderStudy(){
   }else{
     el.innerHTML = corner +
       `<div class="side-label">こたえ</div>` +
-      `<div class="body ans">${esc(c.a) || "（答えは書いてない）"}</div>` +
+      (c.a ? `<div class="body ans">${esc(c.a)}</div>` : "") +
       imgsHTML(c.aImgs) +
-      searchBtnHTML(c.a) +
+      searchBtnHTML(c.a || c.q) +
       `<div class="tap-note">タップで次へ</div>`;
   }
   bindSearch(el);
@@ -1587,9 +1579,9 @@ function renderTodo(){
   }else{
     el.innerHTML = corner +
       `<div class="side-label">こたえ</div>` +
-      `<div class="body ans">${esc(c.a) || "（答えは書いてない）"}</div>` +
+      (c.a ? `<div class="body ans">${esc(c.a)}</div>` : "") +
       imgsHTML(c.aImgs) +
-      searchBtnHTML(c.a) +
+      searchBtnHTML(c.a || c.q) +
       `<div class="tap-note">タップで次へ</div>`;
   }
   bindSearch(el);
@@ -1637,16 +1629,11 @@ tq.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){ e.preventDefault(); ta.focus(); }
 });
 ta.addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){
-    e.preventDefault();
-    if(!ta.value.trim()){ toast("裏（答え）になにか書いてな"); return; }
-    ta.blur();   // キーボードを下げて保存ボタンへ
-  }
+  if(e.key==="Enter"){ e.preventDefault(); ta.blur(); }   // キーボードを下げて保存ボタンへ
 });
 document.getElementById("todoCreateSave").onclick = async ()=>{
   const q = tq.value.trim(), a = ta.value.trim();
   if(!q){ toast("表（問題）になにか書いてな"); tq.focus(); return; }
-  if(!a){ toast("裏（答え）になにか書いてな"); ta.focus(); return; }
   cards.unshift(mkCard(q, a, [], [], true));
   await save();
   sSave();
@@ -1866,7 +1853,7 @@ document.getElementById("faSearchBtn").onclick = ()=>{
 /* ---------- 使い方・コツ ---------- */
 const HOWTO = `
 <p><b>1. 書く</b><br>表に問題を書いて改行 → 裏へ。裏を書いて改行するとキーボードが下がるので、緑の「保存」ボタンを押す。</p>
-<p><b>2. 緑の丸 ＝ やること</b><br>点灯させてから保存すると、そのカードは出題のとき必ず先に出てくる。今日のタスク向け。</p>
+<p><b>2. 緑の丸 ＝ やること</b><br>今日のタスク専用の別世界。ここで作った問題はやることボタンからだけ見えて、10・20・30には混ざらない。</p>
 <p><b>3. 解く</b><br>10・20・30の丸を押すと出題スタート。カードをタップで答え、もう一回タップで次へ。右上の✏️でその場で直せる。</p>
 <p><b>4. 整える</b><br>一覧タブで編集・削除。設定タブでバックアップ（書き出し・読み込み）。</p>`;
 
