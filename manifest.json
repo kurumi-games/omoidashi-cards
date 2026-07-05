@@ -1,26 +1,24 @@
 {
-  "name": "思い出しカード",
-  "short_name": "思い出しカード",
-  "description": "自分の考え・仕事・ボイトレ・制作メモをクイズ形式で反復する暗記カード",
+  "name": "Retain",
+  "short_name": "Retain",
+  "description": "忘れない。思い出せる形で、書き残す",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1b2436",
-  "background_color": "#161d2b",
+  "background_color": "#f4f6fb",
+  "theme_color": "#f4f6fb",
   "lang": "ja",
   "icons": [
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "./icon-maskable-512.png",
